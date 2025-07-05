@@ -214,6 +214,7 @@ const VALID_WORDS = new Set([
     "ZESTY", "ZILCH", "ZINGS", "ZONAL"
 ]);
 
+
 const gameBoard = document.getElementById('game-board');
 const messageDisplay = document.getElementById('message');
 const overlay = document.getElementById('overlay');
@@ -240,12 +241,12 @@ function initializeBoard() {
 // --- Message Handling ---
 function showMessage(msg, isError = true) {
     messageDisplay.textContent = msg;
-    messageDisplay.style.color = isError ? 'red' : 'green';
+    messageDisplay.style.color = isError ? '#ff4d4d' : '#4CAF50'; // Red for error, Green for success
     // Clear message after a short delay if it's an error
     if (isError) {
         setTimeout(() => {
             messageDisplay.textContent = '';
-        }, 3000);
+        }, 2000); // Shorter display for error messages
     }
 }
 
@@ -259,17 +260,16 @@ function handleKeyboardInput(event) {
 
     const key = event.key.toUpperCase(); // Convert key to uppercase for consistency
 
-    // Check if the key is a single letter (A-Z)
+    // Only allow single letters, Backspace, and Enter
     if (key.length === 1 && key >= 'A' && key <= 'Z') {
         addLetter(key);
-        // Prevent default browser behavior for letter keys (e.g., tabbing if focus was somewhere else)
-        event.preventDefault();
+        event.preventDefault(); // Stop default browser actions like tabbing
     } else if (key === 'BACKSPACE') {
         deleteLetter();
-        event.preventDefault(); // Prevent browser back navigation
+        event.preventDefault(); // Stop browser back navigation
     } else if (key === 'ENTER') {
         submitGuess();
-        event.preventDefault(); // Prevent default form submission or other enter behaviors
+        event.preventDefault(); // Stop default form submission or other enter behaviors
     }
 }
 
@@ -310,8 +310,8 @@ async function submitGuess() {
         return;
     }
 
-    // Clear message before processing guess
-    showMessage('', false);
+    // Clear any previous messages before processing guess
+    showMessage('', false); // Clear with non-error color initially
 
     await checkGuess(currentGuess);
 }
@@ -339,17 +339,14 @@ async function checkGuess(guess) {
     const guessLetters = guess.split('');
     const letterStatus = Array(WORD_LENGTH).fill(''); // To track status for each letter
 
-    // Create a frequency map of letters in the secret word
-    const secretLetterCounts = {};
-    for (const char of secretWordLetters) {
-        secretLetterCounts[char] = (secretLetterCounts[char] || 0) + 1;
-    }
+    // Create a mutable copy of secret word characters to "consume" them
+    let tempSecret = [...secretWordLetters];
 
-    // First pass: Mark correct (green) letters and update counts
+    // First pass: Mark correct (green) letters and consume them from tempSecret
     for (let i = 0; i < WORD_LENGTH; i++) {
-        if (guessLetters[i] === secretWordLetters[i]) {
+        if (guessLetters[i] === tempSecret[i]) {
             letterStatus[i] = 'correct';
-            secretLetterCounts[guessLetters[i]]--; // Consume this letter from the secret word
+            tempSecret[i] = null; // Mark as consumed
         }
     }
 
@@ -360,50 +357,50 @@ async function checkGuess(guess) {
         }
 
         const char = guessLetters[i];
-        if (secretLetterCounts[char] > 0) {
+        const indexInSecret = tempSecret.indexOf(char);
+
+        if (indexInSecret !== -1) {
             letterStatus[i] = 'present';
-            secretLetterCounts[char]--; // Consume this letter from the secret word
+            tempSecret[indexInSecret] = null; // Consume this letter from the secret word
         } else {
             letterStatus[i] = 'absent';
         }
     }
 
     // Apply classes with a delay for flip animation
-    const rowBoxes = [];
+    const rowElements = [];
     for (let i = 0; i < WORD_LENGTH; i++) {
-        const box = document.getElementById(`box-${currentGuessIndex}-${i}`);
-        rowBoxes.push(box);
+        rowElements.push(document.getElementById(`box-${currentGuessIndex}-${i}`));
     }
 
     for (let i = 0; i < WORD_LENGTH; i++) {
-        const box = rowBoxes[i];
-        // Add flip-in class to trigger the animation
-        box.classList.add('flip-in');
+        const box = rowElements[i];
+        box.classList.add('flip'); // Add flip class to trigger the animation
 
-        // Wait for the first half of the flip animation before applying the color
-        await new Promise(resolve => setTimeout(resolve, 300)); // Half of 0.6s total animation
+        // Wait for the animation to start and reach halfway before changing color
+        // The animation is 0.6s total, so change color at 0.3s
+        await new Promise(resolve => setTimeout(resolve, 300)); // Half of 0.6s animation duration
 
-        box.classList.remove('flip-in'); // Remove flip-in
-        box.classList.add(letterStatus[i]); // Apply color
-        box.classList.remove('filled'); // Remove filled border after coloring
-        box.classList.add('flip-out'); // Add flip-out to complete the animation
+        box.classList.remove('filled'); // Remove the filled border before applying color
+        box.classList.add(letterStatus[i]); // Apply the final color class
 
-        // Wait for the total flip animation to complete before moving to next letter
-        await new Promise(resolve => setTimeout(resolve, 300)); // Remaining half of 0.6s animation
+        // Wait for the second half of the animation to complete
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    // Wait a short moment after all flips before checking win/lose condition
-    await new Promise(resolve => setTimeout(resolve, 200));
 
-    // Check for win/lose conditions
-    if (guess === SECRET_WORD) {
-        winGame();
-    } else if (currentGuessIndex === MAX_GUESSES - 1) {
-        loseGame();
-    } else {
-        currentGuessIndex++;
-        currentLetterPos = 0; // Reset letter position for next guess
-    }
+    // Check for win/lose conditions after all animations are complete
+    // Add a small buffer timeout to ensure visual stability
+    setTimeout(() => {
+        if (guess === SECRET_WORD) {
+            winGame();
+        } else if (currentGuessIndex === MAX_GUESSES - 1) {
+            loseGame();
+        } else {
+            currentGuessIndex++;
+            currentLetterPos = 0; // Reset letter position for next guess
+        }
+    }, 100); // Small delay
 }
 
 // --- Game End Handling ---
@@ -425,28 +422,28 @@ function hideModal() {
 
 function winGame() {
     gameEnded = true;
-    showMessage('You guessed it!', false);
-    setTimeout(() => { // Small delay before showing modal
+    showMessage('Awesome! You got it!', false);
+    setTimeout(() => { // Small delay before showing modal after last animation
         showModal(`
             <h2>🎉 Congratulations! 🎉</h2>
             <p>You guessed the word: <strong>${SECRET_WORD}</strong></p>
             <p>You are inception ready, register now!</p>
             <a href="https://your-registration-link.com" target="_blank">Register Here!</a>
         `);
-    }, 1000); // Delay after last animation
+    }, 1200); // Delay after last box flip completes
 }
 
 function loseGame() {
     gameEnded = true;
     showMessage('Game Over!', true);
-    setTimeout(() => { // Small delay before showing modal
+    setTimeout(() => { // Small delay before showing modal after last animation
         showModal(`
             <h2>😔 Game Over 😔</h2>
             <p>You ran out of guesses!</p>
             <p>The word was: <strong>${SECRET_WORD}</strong></p>
             <a href="#" onclick="location.reload(); return false;">Play Again</a>
         `);
-    }, 1000); // Delay after last animation
+    }, 1200); // Delay after last box flip completes
 }
 
 
