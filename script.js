@@ -2,7 +2,8 @@ const SECRET_WORD = "SMART"; // Your custom 5-letter word
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 
-let currentGuess = 0;
+let currentGuessIndex = 0; // Tracks which guess row we are on (0-5)
+let currentLetterPos = 0;  // Tracks current letter position in the current guess (0-4)
 let gameEnded = false;
 
 // Comprehensive list of 5-letter words for validation.
@@ -214,12 +215,13 @@ const VALID_WORDS = new Set([
 ]);
 
 const gameBoard = document.getElementById('game-board');
-const guessInput = document.getElementById('guess-input');
-const submitButton = document.getElementById('submit-guess');
 const messageDisplay = document.getElementById('message');
-const winLoseMessageDisplay = document.getElementById('win-lose-message');
+const overlay = document.getElementById('overlay');
+const modal = document.getElementById('modal');
+const modalContent = document.getElementById('modal-content');
+const closeModalButton = document.getElementById('close-modal');
 
-// Initialize the game board with empty rows and boxes
+// --- Game Initialization ---
 function initializeBoard() {
     for (let i = 0; i < MAX_GUESSES; i++) {
         const row = document.createElement('div');
@@ -235,7 +237,7 @@ function initializeBoard() {
     }
 }
 
-// Function to display messages
+// --- Message Handling ---
 function showMessage(msg, isError = true) {
     messageDisplay.textContent = msg;
     messageDisplay.style.color = isError ? 'red' : 'green';
@@ -247,40 +249,89 @@ function showMessage(msg, isError = true) {
     }
 }
 
-// Handle a submitted guess
-function handleSubmitGuess() {
+// --- Typing and Deleting Letters ---
+function handleKeyboardInput(event) {
     if (gameEnded) return;
 
-    const guess = guessInput.value.toUpperCase();
-    guessInput.value = ''; // Clear input field
+    const key = event.key.toUpperCase();
 
-    if (guess.length !== WORD_LENGTH) {
+    if (key === 'BACKSPACE') {
+        deleteLetter();
+    } else if (key === 'ENTER') {
+        submitGuess();
+    } else if (key.length === 1 && key >= 'A' && key <= 'Z') {
+        addLetter(key);
+    }
+}
+
+function addLetter(key) {
+    if (currentLetterPos < WORD_LENGTH) {
+        const currentBox = document.getElementById(`box-${currentGuessIndex}-${currentLetterPos}`);
+        currentBox.textContent = key;
+        currentBox.classList.add('filled', 'pop');
+        // Remove pop class after animation to allow it to play again
+        currentBox.addEventListener('animationend', () => {
+            currentBox.classList.remove('pop');
+        }, { once: true });
+        currentLetterPos++;
+    }
+}
+
+function deleteLetter() {
+    if (currentLetterPos > 0) {
+        currentLetterPos--;
+        const currentBox = document.getElementById(`box-${currentGuessIndex}-${currentLetterPos}`);
+        currentBox.textContent = '';
+        currentBox.classList.remove('filled');
+    }
+}
+
+// --- Guess Submission ---
+async function submitGuess() {
+    if (currentLetterPos !== WORD_LENGTH) {
         showMessage(`Guess must be ${WORD_LENGTH} letters long!`);
+        shakeRow(document.getElementById(`row-${currentGuessIndex}`));
         return;
     }
 
-    if (!VALID_WORDS.has(guess)) {
+    const currentGuess = getCurrentGuessWord();
+    if (!VALID_WORDS.has(currentGuess)) {
         showMessage('Not a valid word!');
+        shakeRow(document.getElementById(`row-${currentGuessIndex}`));
         return;
     }
 
-    checkGuess(guess);
+    await checkGuess(currentGuess);
+}
+
+function getCurrentGuessWord() {
+    let guess = '';
+    for (let i = 0; i < WORD_LENGTH; i++) {
+        const box = document.getElementById(`box-${currentGuessIndex}-${i}`);
+        guess += box.textContent;
+    }
+    return guess;
+}
+
+// Apply shake animation to a row
+function shakeRow(rowElement) {
+    rowElement.classList.add('shake');
+    rowElement.addEventListener('animationend', () => {
+        rowElement.classList.remove('shake');
+    }, { once: true });
 }
 
 // Check the guess against the secret word and update the UI
-function checkGuess(guess) {
+async function checkGuess(guess) {
     const secretWordLetters = SECRET_WORD.split('');
     const guessLetters = guess.split('');
-    const currentRowElement = document.getElementById(`row-${currentGuess}`);
     const letterStatus = Array(WORD_LENGTH).fill(''); // To track status for each letter
 
-    // First pass: Mark correct (green) letters and track remaining letters for yellow/gray
-    let tempSecret = [...secretWordLetters]; // Use a mutable copy for marking used letters
+    // Use a mutable copy for marking used letters in the secret word
+    let tempSecret = [...secretWordLetters];
 
+    // First pass: Mark correct (green) letters
     for (let i = 0; i < WORD_LENGTH; i++) {
-        const box = document.getElementById(`box-${currentGuess}-${i}`);
-        box.textContent = guessLetters[i];
-
         if (guessLetters[i] === secretWordLetters[i]) {
             letterStatus[i] = 'correct';
             tempSecret[i] = null; // Mark as used
@@ -289,71 +340,90 @@ function checkGuess(guess) {
 
     // Second pass: Mark present (yellow) and absent (gray) letters
     for (let i = 0; i < WORD_LENGTH; i++) {
-        const box = document.getElementById(`box-${currentGuess}-${i}`);
-
         if (letterStatus[i] === 'correct') {
-            box.classList.add('correct');
             continue; // Already handled
         }
 
         const indexInSecret = tempSecret.indexOf(guessLetters[i]);
         if (indexInSecret !== -1) {
             letterStatus[i] = 'present';
-            box.classList.add('present');
             tempSecret[indexInSecret] = null; // Mark as used
         } else {
             letterStatus[i] = 'absent';
-            box.classList.add('absent');
         }
     }
+
+    // Apply classes with a delay for flip animation
+    for (let i = 0; i < WORD_LENGTH; i++) {
+        const box = document.getElementById(`box-${currentGuessIndex}-${i}`);
+        // Add flip-in/out classes to trigger the animation before applying color
+        box.classList.add('flip-in'); // Start flip animation
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for sequential flip
+
+        box.addEventListener('animationend', () => {
+            box.classList.remove('flip-in');
+            box.classList.add(letterStatus[i]);
+            box.classList.remove('filled'); // Remove filled border after coloring
+        }, { once: true });
+    }
+
+    // Wait for all letter animations to complete before checking win/lose
+    await new Promise(resolve => setTimeout(resolve, WORD_LENGTH * 100 + 500)); // Adjust delay based on animation duration
 
     showMessage(''); // Clear any previous error messages
 
     // Check for win/lose conditions
     if (guess === SECRET_WORD) {
         winGame();
-    } else if (currentGuess === MAX_GUESSES - 1) {
+    } else if (currentGuessIndex === MAX_GUESSES - 1) {
         loseGame();
     } else {
-        currentGuess++;
+        currentGuessIndex++;
+        currentLetterPos = 0; // Reset letter position for next guess
     }
 }
 
-// Handle game win
+// --- Game End Handling ---
+function showModal(content) {
+    modalContent.innerHTML = content;
+    overlay.classList.remove('hidden');
+    // Ensure modal is shown before adding the fade-in class
+    setTimeout(() => {
+        modal.classList.add('fade-in');
+    }, 10);
+}
+
+function hideModal() {
+    modal.classList.remove('fade-in');
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+    }, 300); // Match animation duration
+}
+
 function winGame() {
     gameEnded = true;
-    submitButton.disabled = true;
-    guessInput.disabled = true;
-    winLoseMessageDisplay.classList.remove('hidden');
-    winLoseMessageDisplay.innerHTML = `
-        Congratulations on guessing the right word, you are inception ready, register now!
+    showModal(`
+        <h2>🎉 Congratulations! 🎉</h2>
+        <p>You guessed the word: <strong>${SECRET_WORD}</strong></p>
+        <p>You are inception ready, register now!</p>
         <a href="https://your-registration-link.com" target="_blank">Register Here!</a>
-    `;
-    winLoseMessageDisplay.style.backgroundColor = '#d4edda'; // Light green background
-    winLoseMessageDisplay.style.color = '#155724'; // Dark green text
+    `);
 }
 
-// Handle game loss
 function loseGame() {
     gameEnded = true;
-    submitButton.disabled = true;
-    guessInput.disabled = true;
-    winLoseMessageDisplay.classList.remove('hidden');
-    winLoseMessageDisplay.innerHTML = `
-        You ran out of guesses! The word was: <strong>${SECRET_WORD}</strong>.
-        Better luck next time!
-    `;
-    winLoseMessageDisplay.style.backgroundColor = '#f8d7da'; // Light red background
-    winLoseMessageDisplay.style.color = '#721c24'; // Dark red text
+    showModal(`
+        <h2>😔 Game Over 😔</h2>
+        <p>You ran out of guesses!</p>
+        <p>The word was: <strong>${SECRET_WORD}</strong></p>
+        <a href="#" onclick="location.reload(); return false;">Play Again</a>
+    `);
 }
 
-// Event Listeners
-submitButton.addEventListener('click', handleSubmitGuess);
-guessInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-        handleSubmitGuess();
-    }
-});
+
+// --- Event Listeners ---
+document.addEventListener('keydown', handleKeyboardInput);
+closeModalButton.addEventListener('click', hideModal);
 
 // Initialize the game when the page loads
 initializeBoard();
