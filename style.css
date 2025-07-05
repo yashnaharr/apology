@@ -1,91 +1,89 @@
-:root {
-    --green: #6aaa64;
-    --yellow: #c9b458;
-    --gray: #787c7e;
-    --dark-gray: #1a1a1b;
-    --light-gray: #d3d6da;
-    --white: #ffffff;
-    --black: #000000;
-}
-
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* A font closer to Wordle */
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Align to top to give space for title */
     min-height: 100vh;
+    background-color: #121213; /* Deep dark background */
+    color: #ffffff; /* White text */
     margin: 0;
-    background-color: var(--black); /* Dark background */
-    color: var(--white); /* White text */
+    padding-top: 50px; /* Space from the top */
+    overflow: hidden; /* Prevent scrollbars */
+    box-sizing: border-box;
 }
 
 .game-container {
-    background-color: var(--black);
-    padding: 20px;
-    border-radius: 8px;
-    /* box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); */ /* Removed for cleaner black theme */
     text-align: center;
-    width: 100%;
+    padding: 20px;
+    /* No background-color on container, let body handle it for a cleaner look */
     max-width: 400px;
-    margin: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%; /* Take full width within max-width */
 }
 
-h1 {
-    color: var(--white);
-    margin-bottom: 20px;
-    font-size: 2.5em;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--gray);
-    padding-bottom: 10px;
-    width: 100%;
+.game-title {
+    color: #6d6d6e; /* Grayish color as per image */
+    font-size: 2.5em; /* Larger title */
+    margin-bottom: 40px; /* More space below title */
+    letter-spacing: 0.1em; /* Spacing out letters */
+    font-weight: 900; /* Bolder */
 }
 
 #game-board {
-    display: grid;
-    grid-template-rows: repeat(6, 1fr);
-    gap: 8px;
-    margin-bottom: 20px;
-    width: 100%; /* Ensure grid takes full width of container */
-    max-width: 350px; /* Max width for grid to keep aspect ratio */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between rows */
+    margin: 0 auto; /* Center the board */
+    width: fit-content; /* Adjust width to content (5 boxes + gaps) */
+    padding-bottom: 20px; /* Space for message below */
 }
 
 .word-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
-    width: 100%;
+    display: flex;
+    gap: 8px; /* Space between letter boxes */
+    justify-content: center;
 }
 
 .letter-box {
-    width: 100%; /* Make width responsive */
-    padding-bottom: 100%; /* Create square boxes using aspect ratio trick */
-    position: relative;
-    border: 2px solid var(--gray);
+    width: 60px;
+    height: 60px;
+    border: 2px solid #3a3a3c; /* Dark gray border (default/empty) */
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 2em;
     font-weight: bold;
     text-transform: uppercase;
-    color: var(--white);
-    background-color: var(--black);
-    box-sizing: border-box; /* Include padding/border in size */
-    transition: background-color 0.5s ease-out, border-color 0.5s ease-out, transform 0.1s ease-out; /* Add transform for bounce */
-    transform-style: preserve-3d; /* For flip animation */
+    transition: background-color 0.6s ease-in-out, border-color 0.6s ease-in-out, transform 0.1s ease-out;
+    box-sizing: border-box;
+    color: #e4e4e4; /* Light text for letters */
 }
 
+/* State classes for letter boxes */
 .letter-box.filled {
-    border-color: var(--light-gray);
+    border-color: #565758; /* Slightly lighter border when filled */
+}
+
+.letter-box.correct {
+    background-color: #538d4e; /* Wordle Green */
+    border-color: #538d4e;
+    color: white;
+}
+
+.letter-box.present {
+    background-color: #b59f3b; /* Wordle Yellow */
+    border-color: #b59f3b;
+    color: white;
+}
+
+.letter-box.absent {
+    background-color: #3a3a3c; /* Wordle Gray */
+    border-color: #3a3a3c;
+    color: white;
 }
 
 /* Animations */
 .letter-box.pop {
-    animation: pop 0.2s ease-out;
+    animation: pop 0.1s ease-out;
 }
 
 @keyframes pop {
@@ -94,160 +92,111 @@ h1 {
     100% { transform: scale(1); }
 }
 
-.letter-box.flip-in {
-    animation: flip-in 0.5s forwards;
-}
-
-.letter-box.flip-out {
-    animation: flip-out 0.5s forwards;
-}
-
-@keyframes flip-in {
-    0% { transform: rotateX(0deg); background-color: var(--black); border-color: var(--gray); }
-    50% { transform: rotateX(90deg); background-color: var(--black); border-color: var(--gray); }
-    100% { transform: rotateX(0deg); }
-}
-
-@keyframes flip-out {
-    0% { transform: rotateX(0deg); }
-    50% { transform: rotateX(90deg); }
-    100% { transform: rotateX(180deg); } /* This frame is technically not used, color change happens at 50% for visual */
-}
-
-
-/* Wordle Feedback Colors */
-.letter-box.correct {
-    background-color: var(--green); /* Green */
-    border-color: var(--green);
-    color: var(--white);
-}
-
-.letter-box.present {
-    background-color: var(--yellow); /* Yellow */
-    border-color: var(--yellow);
-    color: var(--white);
-}
-
-.letter-box.absent {
-    background-color: var(--gray); /* Gray */
-    border-color: var(--gray);
-    color: var(--white);
-}
-
 .word-row.shake {
-    animation: shake 0.5s;
+    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-10px); }
-    40%, 80% { transform: translateX(10px); }
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Flip animation */
+.letter-box.flip {
+    animation: flip 0.6s ease-in-out forwards;
+}
+
+@keyframes flip {
+    0% { transform: rotateX(0deg); background-color: #3a3a3c; border-color: #3a3a3c;}
+    50% { transform: rotateX(90deg); }
+    100% { transform: rotateX(0deg); }
 }
 
 
-.message {
-    margin-top: 15px;
+/* Message Display */
+#message {
     font-size: 1.1em;
-    color: red; /* Error messages */
-    min-height: 20px; /* Reserve space to prevent layout shifts */
     font-weight: bold;
+    height: 20px; /* Reserve space to prevent layout shift */
+    margin-top: 10px;
+    color: #ff4d4d; /* Default to red for errors */
 }
 
-/* Overlay and Modal for Win/Lose messages */
-#overlay {
+/* Modal Styling */
+.overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-#modal {
-    background: var(--dark-gray);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    max-width: 350px;
-    width: 90%;
-    position: relative;
-    border: 2px solid var(--gray);
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-#close-modal {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 2em;
-    color: var(--gray);
-    cursor: pointer;
-}
-
-#close-modal:hover {
-    color: var(--white);
-}
-
-#modal-content {
-    font-size: 1.2em;
-    line-height: 1.5;
-    color: var(--white);
-}
-
-#modal-content strong {
-    color: var(--yellow); /* Highlight the word */
-}
-
-#modal-content a {
-    color: var(--green); /* Link color */
-    text-decoration: none;
-    margin-top: 15px;
-    display: inline-block;
-    padding: 8px 15px;
-    border: 1px solid var(--green);
-    border-radius: 5px;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-#modal-content a:hover {
-    background-color: var(--green);
-    color: var(--white);
-}
-
-
-.hidden {
+.overlay.hidden {
     display: none;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-    .game-container {
-        margin: 10px;
-        padding: 15px;
-    }
-    .letter-box {
-        font-size: 1.8em;
-    }
-    h1 {
-        font-size: 2em;
-    }
-    #modal {
-        padding: 20px;
-    }
+.modal {
+    background-color: #262627;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    text-align: center;
+    position: relative;
+    max-width: 80%;
+    transform: translateY(-50px); /* Start slightly above center */
+    opacity: 0; /* Start invisible */
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
 }
 
-@media (max-width: 400px) {
-    .letter-box {
-        font-size: 1.6em;
-    }
+.modal.fade-in {
+    transform: translateY(0); /* Move to center */
+    opacity: 1; /* Fade in */
+}
+
+.modal h2 {
+    color: #4CAF50;
+    margin-top: 0;
+    font-size: 2em;
+}
+
+.modal p {
+    font-size: 1.2em;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.modal a {
+    color: #81a8ed; /* Blueish link color */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.modal a:hover {
+    text-decoration: underline;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.close-button:hover {
+    color: #fff;
 }
