@@ -133,6 +133,13 @@
       cursor: pointer;
     }
 
+    canvas {
+      position: fixed;
+      pointer-events: none;
+      top: 0;
+      left: 0;
+    }
+
     @media (max-width: 600px) {
       .tile {
         font-size: 6vw;
@@ -156,6 +163,9 @@
     <button id="try-again">Try Again</button>
   </div>
 
+  <canvas id="confetti-canvas"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
     const WORD = "smart";
     const MAX_TRIES = 6;
@@ -167,15 +177,6 @@
     const gameBoard = document.getElementById("game-board");
     const popup = document.getElementById("popup");
     const tryAgainBtn = document.getElementById("try-again");
-
-    async function isValidWord(word) {
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        return res.ok;
-      } catch (err) {
-        return false;
-      }
-    }
 
     function createBoard() {
       gameBoard.innerHTML = "";
@@ -211,14 +212,7 @@
       if (key === "enter") {
         if (currentTile === WORD_LENGTH) {
           const guess = Array.from(row.children).map(tile => tile.textContent.toLowerCase()).join("");
-          isValidWord(guess).then(valid => {
-            if (!valid) {
-              row.classList.add("shake");
-              setTimeout(() => row.classList.remove("shake"), 400);
-              return;
-            }
-            validateGuess(guess, row);
-          });
+          validateGuess(guess, row);
         }
         return;
       }
@@ -253,6 +247,11 @@
         gameOver = true;
         setTimeout(() => {
           popup.style.display = "flex";
+          confetti({
+            particleCount: 200,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
         }, 600);
         return;
       }
