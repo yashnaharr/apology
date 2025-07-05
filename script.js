@@ -301,13 +301,22 @@ function initializeKeyboard() {
         rowKeys.forEach(keyText => {
             const keyButton = document.createElement('div');
             keyButton.classList.add('keyboard-key');
-            keyButton.textContent = keyText;
             keyButton.id = `key-${keyText}`; // Assign ID for easy lookup later
             keyboardKeys[keyText] = keyButton; // Store reference
 
-            // Add specific classes for wider keys like ENTER and BACKSPACE
-            if (keyText === 'ENTER' || keyText === 'BACKSPACE') {
+            if (keyText === 'ENTER') {
                 keyButton.classList.add('wide');
+                keyButton.textContent = keyText; // Keep ENTER text
+            } else if (keyText === 'BACKSPACE') {
+                keyButton.classList.add('wide');
+                // Use an SVG for the backspace icon
+                keyButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" fill="#e4e4e4">
+                        <path d="M22 3H7c-.69 0-1.23.35-1.59.88L1 12l4.41 8.12c.36.53.9.88 1.59.88h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
+                    </svg>
+                `;
+            } else {
+                keyButton.textContent = keyText; // For regular letters
             }
 
             keyButton.addEventListener('click', () => {
@@ -326,6 +335,8 @@ function initializeKeyboard() {
         keyboardContainer.appendChild(rowDiv);
     });
 }
+
+// ... (handleKeyboardInput, addLetter, deleteLetter, submitGuess, checkGuess, etc. functions - UNCHANGED) ...
 
 // --- Typing and Deleting Letters (Direct to Grid & Keyboard) ---
 function handleKeyboardInput(event) {
