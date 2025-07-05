@@ -87,7 +87,8 @@ body {
     font-size: 1.8em; /* Adjusted font size for smaller boxes */
     font-weight: bold;
     text-transform: uppercase;
-    transition: background-color 0.6s ease-in-out, border-color 0.6s ease-in-out, transform 0.1s ease-out;
+    /* CHANGED: Faster animation duration */
+    transition: background-color 0.4s ease-in-out, border-color 0.4s ease-in-out, transform 0.1s ease-out;
     box-sizing: border-box;
     color: #e4e4e4;
 }
@@ -140,9 +141,9 @@ body {
     40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-/* Flip animation (unchanged) */
+/* Flip animation - CHANGED: Faster duration */
 .letter-box.flip {
-    animation: flip 0.6s ease-in-out forwards;
+    animation: flip 0.4s ease-in-out forwards; /* Reduced from 0.6s to 0.4s */
 }
 
 @keyframes flip {
