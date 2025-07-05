@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Custom Wordle</title>
+    <title>Inception 2025</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
-        <h1>My Custom Wordle</h1>
+        <h1>Inception 2025</h1>
         <div id="game-board">
             </div>
-        <input type="text" id="guess-input" maxlength="5" autofocus>
-        <button id="submit-guess">Guess</button>
+
+        <div id="overlay" class="hidden">
+            <div id="modal">
+                <span id="close-modal">&times;</span>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+
         <div id="message" class="message"></div>
-        <div id="win-lose-message" class="hidden"></div>
     </div>
     <script src="script.js"></script>
 </body>
