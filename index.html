@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inception 2025</title>
+    <title>INCEPTION 2025 Wordle</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
-        <h1>Inception 2025</h1>
+        <h1 class="game-title">INCEPTION 2025</h1>
         <div id="game-board">
             </div>
-
-        <div id="overlay" class="hidden">
-            <div id="modal">
-                <span id="close-modal">&times;</span>
-                <div id="modal-content"></div>
-            </div>
-        </div>
-
         <div id="message" class="message"></div>
     </div>
+
+    <div id="overlay" class="overlay hidden">
+        <div id="modal" class="modal">
+            <button id="close-modal" class="close-button">&times;</button>
+            <div id="modal-content">
+                </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
