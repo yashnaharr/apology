@@ -1,3 +1,25 @@
+// --- TEMPORARY DEBUGGING ELEMENT ---
+// This div will appear at the top of your page if JavaScript is running.
+// If you see "JS Running!" on your phone, then the script is loading.
+// You can remove this entire block after you confirm JS is loading.
+const debugDiv = document.createElement('div');
+debugDiv.id = 'debug-indicator';
+debugDiv.textContent = 'JS Running!';
+debugDiv.style.cssText = `
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background-color: yellow;
+    color: black;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    z-index: 9999;
+`;
+document.body.appendChild(debugDiv);
+// --- END TEMPORARY DEBUGGING ELEMENT ---
+
+
 const SECRET_WORD = "SMART"; // Your custom 5-letter word
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
@@ -220,9 +242,8 @@ const overlay = document.getElementById('overlay');
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modal-content');
 const closeModalButton = document.getElementById('close-modal');
-const keyboardContainer = document.getElementById('keyboard-container'); // New keyboard container
+const keyboardContainer = document.getElementById('keyboard-container');
 
-// Mapping to store references to keyboard keys for updating their colors
 const keyboardKeys = {};
 
 // --- Game Initialization ---
@@ -240,6 +261,17 @@ function initializeBoard() {
         gameBoard.appendChild(row);
     }
     initializeKeyboard(); // Initialize the keyboard after the board
+
+    // --- TEMPORARY DEBUGGING ELEMENT REMOVAL ---
+    // Remove the debug indicator after the board and keyboard are initialized
+    const debugIndicator = document.getElementById('debug-indicator');
+    if (debugIndicator) {
+        debugIndicator.textContent = 'JS Loaded & Init!';
+        setTimeout(() => {
+            debugIndicator.remove();
+        }, 1500); // Remove after a short display
+    }
+    // --- END TEMPORARY DEBUGGING ELEMENT REMOVAL ---
 }
 
 // --- Message Handling ---
@@ -296,8 +328,6 @@ function initializeKeyboard() {
 }
 
 // --- Typing and Deleting Letters (Direct to Grid & Keyboard) ---
-// handleKeyboardInput, addLetter, deleteLetter, getCurrentGuessWord, shakeRow are unchanged
-
 function handleKeyboardInput(event) {
     if (gameEnded) {
         // Prevent any key input if the game has ended
