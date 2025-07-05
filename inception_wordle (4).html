@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inception 2025 Wordle</title>
+  <style>
+    :root {
+      --tile-size: 62px;
+      --gap: 5px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121213;
+      color: #ffffff;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+
+    #game-board {
+      margin-top: 30px;
+      display: grid;
+      grid-template-rows: repeat(6, var(--tile-size));
+      gap: var(--gap);
+    }
+
+    .board-row {
+      display: grid;
+      grid-template-columns: repeat(5, var(--tile-size));
+      gap: var(--gap);
+    }
+
+    .tile {
+      width: var(--tile-size);
+      height: var(--tile-size);
+      border: 2px solid #3a3a3c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .flip {
+      animation: flip 0.6s ease forwards;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .shake {
+      animation: shake 0.4s;
+    }
+
+    @keyframes flip {
+      0% { transform: rotateX(0); }
+      100% { transform: rotateX(360deg); }
+    }
+
+    .correct {
+      background-color: #538d4e;
+      border-color: #538d4e;
+      color: white;
+    }
+
+    .present {
+      background-color: #b59f3b;
+      border-color: #b59f3b;
+      color: white;
+    }
+
+    .absent {
+      background-color: #3a3a3c;
+      border-color: #3a3a3c;
+      color: white;
+    }
+
+    #win-message {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    #qr-code {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Inception 2025</h1>
+  <div id="game-board"></div>
+
+  <div id="win-message">
+    <h2>🎉 Congratulations, you are all set for Inception! 🎉</h2>
+    <div id="qr-code">
+      <img src="https://qrfy.io/YAE6zXwXlt.svg" alt="QR Code" width="200" />
+    </div>
+  </div>
+
+  <script>
+    const WORD = "smart";
+    const MAX_TRIES = 6;
+    const WORD_LENGTH = 5;
+    let currentRow = 0;
+    let currentTile = 0;
+    let gameOver = false;
+
+    const gameBoard = document.getElementById("game-board");
+
+    async function isValidWord(word) {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      return res.ok;
+    }
+
+    for (let i = 0; i < MAX_TRIES; i++) {
+      const row = document.createElement("div");
+      row.className = "board-row";
+      for (let j = 0; j < WORD_LENGTH; j++) {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        row.appendChild(tile);
+      }
+      gameBoard.appendChild(row);
+    }
+
+    document.addEventListener("keydown", handleKeyPress);
+
+    function handleKeyPress(e) {
+      if (gameOver) return;
+      const key = e.key.toLowerCase();
+      const row = gameBoard.children[currentRow];
+
+      if (key === "backspace") {
+        if (currentTile > 0) {
+          currentTile--;
+          row.children[currentTile].textContent = "";
+        }
+        return;
+      }
+
+      if (key === "enter") {
+        if (currentTile === WORD_LENGTH) {
+          const guess = Array.from(row.children).map(tile => tile.textContent.toLowerCase()).join("");
+          isValidWord(guess).then(valid => {
+            if (!valid) {
+              row.classList.add("shake");
+              setTimeout(() => row.classList.remove("shake"), 400);
+              return;
+            }
+            validateGuess(guess, row);
+          });
+        }
+        return;
+      }
+
+      if (/^[a-z]$/.test(key)) {
+        if (currentTile < WORD_LENGTH) {
+          row.children[currentTile].textContent = key;
+          currentTile++;
+        }
+      }
+    }
+
+    function validateGuess(guess, row) {
+      let correctCount = 0;
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        const tile = row.children[i];
+        const letter = guess[i];
+        tile.classList.add("flip");
+
+        setTimeout(() => {
+          if (letter === WORD[i]) {
+            tile.classList.add("correct");
+            correctCount++;
+          } else if (WORD.includes(letter)) {
+            tile.classList.add("present");
+          } else {
+            tile.classList.add("absent");
+          }
+        }, i * 300);
+      }
+
+      if (correctCount === WORD_LENGTH) {
+        setTimeout(() => {
+          document.getElementById("win-message").style.display = "block";
+          gameOver = true;
+        }, 1600);
+        return;
+      }
+
+      currentRow++;
+      currentTile = 0;
+
+      if (currentRow >= MAX_TRIES) {
+        setTimeout(() => alert("Out of attempts! The word was '" + WORD + "'."), 1600);
+        gameOver = true;
+      }
+    }
+  </script>
+</body>
+</html>
