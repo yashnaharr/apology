@@ -339,7 +339,7 @@ function winGame() {
         showModal(`
             <h2>🎉 Congratulations! 🎉</h2>
             <p>You guessed the word: <strong>${SECRET_WORD}</strong></p>
-            <p>You are inception ready, register now!</p>
+            <p>You are Inception ready, Register Now!</p>
             <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1" target="_blank">Register Here!</a>
         `);
     }, 1200); // Delay after last box flip completes
