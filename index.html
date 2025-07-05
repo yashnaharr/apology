@@ -102,6 +102,25 @@
     #qr-code {
       margin-top: 10px;
     }
+
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #1a1a1a;
+      padding: 30px;
+      border: 2px solid #ffffff;
+      border-radius: 10px;
+      z-index: 1000;
+      text-align: center;
+    }
+
+    #popup a {
+      color: #4fc3f7;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -113,6 +132,11 @@
     <div id="qr-code">
       <img src="https://qrfy.io/YAE6zXwXlt.svg" alt="QR Code" width="200" />
     </div>
+  </div>
+
+  <div id="popup">
+    <h2>🎉 Congratulations, you are all set for Inception!</h2>
+    <p><a href="https://qrfy.io/YAE6zXwXlt" target="_blank">Register now</a></p>
   </div>
 
   <script>
@@ -201,6 +225,7 @@
       if (correctCount === WORD_LENGTH) {
         setTimeout(() => {
           document.getElementById("win-message").style.display = "block";
+          document.getElementById("popup").style.display = "block";
           gameOver = true;
         }, 1600);
         return;
