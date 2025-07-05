@@ -103,7 +103,6 @@
       height: 100vh;
       background-color: rgba(0, 0, 0, 0.95);
       color: white;
-      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
@@ -120,6 +119,18 @@
       color: #4fc3f7;
       font-size: 1.5rem;
       text-decoration: underline;
+      margin-top: 10px;
+    }
+
+    #try-again {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #4fc3f7;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
     }
 
     @media (max-width: 600px) {
@@ -129,7 +140,7 @@
       #popup h2 {
         font-size: 6vw;
       }
-      #popup a {
+      #popup a, #try-again {
         font-size: 5vw;
       }
     }
@@ -142,6 +153,7 @@
   <div id="popup">
     <h2>🎉 You’ve Won! You are all set for Inception! 🎉</h2>
     <a href="https://qrfy.io/YAE6zXwXlt" target="_blank">Register Now</a>
+    <button id="try-again">Try Again</button>
   </div>
 
   <script>
@@ -154,6 +166,7 @@
 
     const gameBoard = document.getElementById("game-board");
     const popup = document.getElementById("popup");
+    const tryAgainBtn = document.getElementById("try-again");
 
     async function isValidWord(word) {
       try {
@@ -164,16 +177,21 @@
       }
     }
 
-    for (let i = 0; i < MAX_TRIES; i++) {
-      const row = document.createElement("div");
-      row.className = "board-row";
-      for (let j = 0; j < WORD_LENGTH; j++) {
-        const tile = document.createElement("div");
-        tile.className = "tile";
-        row.appendChild(tile);
+    function createBoard() {
+      gameBoard.innerHTML = "";
+      for (let i = 0; i < MAX_TRIES; i++) {
+        const row = document.createElement("div");
+        row.className = "board-row";
+        for (let j = 0; j < WORD_LENGTH; j++) {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          row.appendChild(tile);
+        }
+        gameBoard.appendChild(row);
       }
-      gameBoard.appendChild(row);
     }
+
+    createBoard();
 
     document.addEventListener("keydown", handleKeyPress);
 
@@ -235,7 +253,7 @@
         gameOver = true;
         setTimeout(() => {
           popup.style.display = "flex";
-        }, 500);
+        }, 600);
         return;
       }
 
@@ -247,6 +265,14 @@
         gameOver = true;
       }
     }
+
+    tryAgainBtn.addEventListener("click", () => {
+      currentRow = 0;
+      currentTile = 0;
+      gameOver = false;
+      popup.style.display = "none";
+      createBoard();
+    });
   </script>
 </body>
 </html>
