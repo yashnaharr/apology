@@ -249,7 +249,7 @@ function showMessage(msg, isError = true) {
     }
 }
 
-// --- Typing and Deleting Letters ---
+// --- Typing and Deleting Letters (Direct to Grid) ---
 function handleKeyboardInput(event) {
     if (gameEnded) return;
 
@@ -422,6 +422,7 @@ function loseGame() {
 
 
 // --- Event Listeners ---
+// Listen for ALL keyboard input on the document
 document.addEventListener('keydown', handleKeyboardInput);
 closeModalButton.addEventListener('click', hideModal);
 
