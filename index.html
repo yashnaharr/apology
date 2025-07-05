@@ -94,39 +94,43 @@
       color: white;
     }
 
-    #win-message {
-      display: none;
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    #qr-code {
-      margin-top: 10px;
-    }
-
     #popup {
       display: none;
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #1a1a1a;
-      padding: 20px;
-      border: 2px solid #ffffff;
-      border-radius: 10px;
-      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.95);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       text-align: center;
-      max-width: 90vw;
+      z-index: 9999;
+    }
+
+    #popup h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
     }
 
     #popup a {
       color: #4fc3f7;
+      font-size: 1.5rem;
       text-decoration: underline;
     }
 
     @media (max-width: 600px) {
       .tile {
         font-size: 6vw;
+      }
+      #popup h2 {
+        font-size: 6vw;
+      }
+      #popup a {
+        font-size: 5vw;
       }
     }
   </style>
@@ -135,16 +139,9 @@
   <h1>Inception 2025</h1>
   <div id="game-board"></div>
 
-  <div id="win-message">
-    <h2>🎉 Congratulations, you are all set for Inception! 🎉</h2>
-    <div id="qr-code">
-      <img src="https://qrfy.io/YAE6zXwXlt.svg" alt="QR Code" width="200" />
-    </div>
-  </div>
-
   <div id="popup">
-    <h2>🎉 Congratulations, you are all set for Inception!</h2>
-    <p><a href="https://qrfy.io/YAE6zXwXlt" target="_blank">Register now</a></p>
+    <h2>🎉 You’ve Won! You are all set for Inception! 🎉</h2>
+    <a href="https://qrfy.io/YAE6zXwXlt" target="_blank">Register Now</a>
   </div>
 
   <script>
@@ -235,9 +232,10 @@
       }
 
       if (correctCount === WORD_LENGTH) {
-        document.getElementById("win-message").style.display = "block";
-        popup.style.display = "block";
         gameOver = true;
+        setTimeout(() => {
+          popup.style.display = "flex";
+        }, 500);
         return;
       }
 
