@@ -218,29 +218,26 @@
 
     function validateGuess(guess, row) {
       let correctCount = 0;
+
       for (let i = 0; i < WORD_LENGTH; i++) {
         const tile = row.children[i];
         const letter = guess[i];
         tile.classList.add("flip");
 
-        setTimeout(() => {
-          if (letter === WORD[i]) {
-            tile.classList.add("correct");
-            correctCount++;
-          } else if (WORD.includes(letter)) {
-            tile.classList.add("present");
-          } else {
-            tile.classList.add("absent");
-          }
-        }, i * 300);
+        if (letter === WORD[i]) {
+          tile.classList.add("correct");
+          correctCount++;
+        } else if (WORD.includes(letter)) {
+          tile.classList.add("present");
+        } else {
+          tile.classList.add("absent");
+        }
       }
 
       if (correctCount === WORD_LENGTH) {
-        setTimeout(() => {
-          document.getElementById("win-message").style.display = "block";
-          popup.style.display = "block";
-          gameOver = true;
-        }, 1600);
+        document.getElementById("win-message").style.display = "block";
+        popup.style.display = "block";
+        gameOver = true;
         return;
       }
 
@@ -248,7 +245,7 @@
       currentTile = 0;
 
       if (currentRow >= MAX_TRIES) {
-        setTimeout(() => alert("Out of attempts! The word was '" + WORD + "'."), 1600);
+        alert("Out of attempts! The word was '" + WORD + "'.");
         gameOver = true;
       }
     }
