@@ -7,7 +7,6 @@ let currentLetterPos = 0;  // Tracks current letter position in the current gues
 let gameEnded = false;
 
 // Comprehensive list of 5-letter words for validation.
-// This list is derived from common Wordle dictionary sources.
 const VALID_WORDS = new Set([
     "ABACK", "ABASH", "ABATE", "ABBOT", "ABHOR", "ABIDE", "ABLED", "ABODE", "ABORT", "ABOUT",
     "ABOVE", "ABUSE", "ABYSS", "ACORN", "ACRID", "ACTOR", "ACUTE", "ADAGE", "ADAPT", "ADEPT",
@@ -221,6 +220,10 @@ const overlay = document.getElementById('overlay');
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modal-content');
 const closeModalButton = document.getElementById('close-modal');
+const keyboardContainer = document.getElementById('keyboard-container'); // New keyboard container
+
+// Mapping to store references to keyboard keys for updating their colors
+const keyboardKeys = {};
 
 // --- Game Initialization ---
 function initializeBoard() {
@@ -236,6 +239,7 @@ function initializeBoard() {
         }
         gameBoard.appendChild(row);
     }
+    initializeKeyboard(); // Initialize the keyboard after the board
 }
 
 // --- Message Handling ---
@@ -250,7 +254,50 @@ function showMessage(msg, isError = true) {
     }
 }
 
-// --- Typing and Deleting Letters (Direct to Grid) ---
+// --- Keyboard Initialization and Interaction ---
+function initializeKeyboard() {
+    const keyboardLayout = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
+    ];
+
+    keyboardLayout.forEach(rowKeys => {
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add('keyboard-row');
+
+        rowKeys.forEach(keyText => {
+            const keyButton = document.createElement('div');
+            keyButton.classList.add('keyboard-key');
+            keyButton.textContent = keyText;
+            keyButton.id = `key-${keyText}`; // Assign ID for easy lookup later
+            keyboardKeys[keyText] = keyButton; // Store reference
+
+            // Add specific classes for wider keys like ENTER and BACKSPACE
+            if (keyText === 'ENTER' || keyText === 'BACKSPACE') {
+                keyButton.classList.add('wide');
+            }
+
+            keyButton.addEventListener('click', () => {
+                // Simulate a keyboard event when a virtual key is clicked
+                // This allows us to reuse the existing handleKeyboardInput logic
+                const event = { key: keyText };
+                if (keyText === 'ENTER') {
+                    event.key = 'Enter'; // Match event.key for 'Enter'
+                } else if (keyText === 'BACKSPACE') {
+                    event.key = 'Backspace'; // Match event.key for 'Backspace'
+                }
+                handleKeyboardInput(event);
+            });
+            rowDiv.appendChild(keyButton);
+        });
+        keyboardContainer.appendChild(rowDiv);
+    });
+}
+
+// --- Typing and Deleting Letters (Direct to Grid & Keyboard) ---
+// handleKeyboardInput, addLetter, deleteLetter, getCurrentGuessWord, shakeRow are unchanged
+
 function handleKeyboardInput(event) {
     if (gameEnded) {
         // Prevent any key input if the game has ended
@@ -367,7 +414,7 @@ async function checkGuess(guess) {
         }
     }
 
-    // Apply classes with a delay for flip animation
+    // Apply classes with a delay for flip animation and update keyboard
     const rowElements = [];
     for (let i = 0; i < WORD_LENGTH; i++) {
         rowElements.push(document.getElementById(`box-${currentGuessIndex}-${i}`));
@@ -375,14 +422,34 @@ async function checkGuess(guess) {
 
     for (let i = 0; i < WORD_LENGTH; i++) {
         const box = rowElements[i];
+        const letter = guessLetters[i];
+        const status = letterStatus[i];
+        const keyboardKey = keyboardKeys[letter]; // Get reference to the virtual keyboard key
+
         box.classList.add('flip'); // Add flip class to trigger the animation
 
         // Wait for the animation to start and reach halfway before changing color
-        // The animation is 0.6s total, so change color at 0.3s
-        await new Promise(resolve => setTimeout(resolve, 300)); // Half of 0.6s animation duration
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         box.classList.remove('filled'); // Remove the filled border before applying color
-        box.classList.add(letterStatus[i]); // Apply the final color class
+        box.classList.add(status); // Apply the final color class to the letter box
+
+        // Update keyboard key color, only if the new status is 'better' than current
+        // 'correct' > 'present' > 'absent' > default
+        if (keyboardKey) {
+            if (!keyboardKey.classList.contains('correct')) { // If not already green
+                if (status === 'correct') {
+                    keyboardKey.classList.remove('present', 'absent');
+                    keyboardKey.classList.add('correct');
+                } else if (status === 'present' && !keyboardKey.classList.contains('present')) { // If not already yellow or green
+                    keyboardKey.classList.remove('absent');
+                    keyboardKey.classList.add('present');
+                } else if (status === 'absent' && !keyboardKey.classList.contains('present') && !keyboardKey.classList.contains('correct')) {
+                    keyboardKey.classList.add('absent');
+                }
+            }
+        }
+
 
         // Wait for the second half of the animation to complete
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -390,7 +457,6 @@ async function checkGuess(guess) {
 
 
     // Check for win/lose conditions after all animations are complete
-    // Add a small buffer timeout to ensure visual stability
     setTimeout(() => {
         if (guess === SECRET_WORD) {
             winGame();
@@ -448,9 +514,9 @@ function loseGame() {
 
 
 // --- Event Listeners ---
-// Listen for ALL keyboard input on the document
+// Listen for ALL keyboard input on the document (for desktop, or if mobile keyboard is manually invoked)
 document.addEventListener('keydown', handleKeyboardInput);
 closeModalButton.addEventListener('click', hideModal);
 
 // Initialize the game when the page loads
-initializeBoard();
+initializeBoard(); // This now also calls initializeKeyboard
