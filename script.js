@@ -25,7 +25,7 @@ document.body.appendChild(debugDiv);
 // --- END TEMPORARY DEBUGGING ELEMENT ---
 
 
-const SECRET_WORD = "SMART"; // Your custom 5-letter word
+const SECRET_WORD = "SORRY"; // Your custom 5-letter word
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 
@@ -337,10 +337,10 @@ function winGame() {
     showMessage('Awesome! You got it!', false);
     setTimeout(() => { // Small delay before showing modal after last animation
         showModal(`
-            <h2>🎉 Congratulations! 🎉</h2>
+            <h2>🎉 Ofc you solved it! 🎉</h2>
             <p>You guessed the word: <strong>${SECRET_WORD}</strong></p>
-            <p>You are Inception ready, Register Now!</p>
-            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1" target="_blank">Register Here!</a>
+            <p>You are a cutie!</p>
+            <a href="https://youtu.be/UyjL052eFAA?si=rr-vR3jqqltMQbIU&t=19"_blank">Further apology!</a>
         `);
     }, 1200); // Delay after last box flip completes
 }
